@@ -36,6 +36,11 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Sidebar context for collapse state
 interface SidebarContextType {
@@ -279,14 +284,25 @@ function TopBar() {
         </Badge>
 
         {/* New Search Button */}
-        <Button
-          size="sm"
-          className="gap-2"
-          onClick={() => navigate("/find")}
-        >
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">New Search</span>
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              className="gap-2"
+              onClick={() => navigate("/find")}
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">New Search</span>
+              <Badge variant="secondary" className="hidden lg:flex ml-0.5 bg-primary-foreground/20 gap-1 text-[10px] px-1.5">
+                <Zap className="h-2.5 w-2.5" />
+                25
+              </Badge>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Run a new search (25 credits)</p>
+          </TooltipContent>
+        </Tooltip>
 
         {/* Notifications */}
         <Button variant="ghost" size="icon-sm" className="relative">

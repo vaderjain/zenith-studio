@@ -185,14 +185,25 @@ export default function Dashboard() {
               onKeyDown={handleKeyDown}
               className="h-14 pl-12 pr-24 text-lg rounded-2xl border-2 border-border/50 focus-visible:border-accent focus-visible:ring-accent/20"
             />
-            <Button
-              onClick={() => handleSearch()}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl"
-              size="lg"
-            >
-              <Search className="h-5 w-5" />
-              <span className="hidden sm:inline ml-2">Search</span>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={() => handleSearch()}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl gap-2"
+                  size="lg"
+                >
+                  <Search className="h-5 w-5" />
+                  <span className="hidden sm:inline">Search</span>
+                  <Badge variant="secondary" className="hidden md:flex ml-1 bg-primary-foreground/20 gap-1">
+                    <Zap className="h-3 w-3" />
+                    25
+                  </Badge>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Search costs 25 credits</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
