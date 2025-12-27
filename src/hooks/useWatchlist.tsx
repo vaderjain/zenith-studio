@@ -1,9 +1,10 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from "react";
-import { toast } from "@/hooks/use-toast";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { toast } from "sonner";
 import { companies } from "@/mock/data";
 import type { Company, Signal } from "@/types";
 
 const MAX_WATCHLIST_SIZE = 10;
+const WATCHLIST_STORAGE_KEY = "watchlist_companies";
 
 interface WatchlistCompany {
   company: Company;
@@ -16,13 +17,18 @@ interface WatchlistContextType {
   watchlist: WatchlistCompany[];
   count: number;
   maxSize: number;
-  addToWatchlist: (companyId: string) => boolean;
-  removeFromWatchlist: (companyId: string) => void;
+  addToWatchlist: (companyId: string) => Promise<boolean>;
+  removeFromWatchlist: (companyId: string) => Promise<void>;
   isInWatchlist: (companyId: string) => boolean;
   canAdd: boolean;
+  isLoading: boolean;
 }
 
 const WatchlistContext = createContext<WatchlistContextType | null>(null);
+
+// Simulate network delay
+const delay = (min = 200, max = 600) =>
+  new Promise((resolve) => setTimeout(resolve, min + Math.random() * (max - min)));
 
 // Generate mock signals for demo
 const generateMockSignals = (companyId: string): Signal[] => {
@@ -68,39 +74,85 @@ const generateWhyItMatters = (company: Company): string => {
   return reasons[Math.floor(Math.random() * reasons.length)];
 };
 
+function getStoredWatchlist(): WatchlistCompany[] {
+  try {
+    const stored = localStorage.getItem(WATCHLIST_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed.map((item: any) => ({
+        ...item,
+        addedAt: new Date(item.addedAt),
+        signals: item.signals.map((s: any) => ({
+          ...s,
+          detectedAt: new Date(s.detectedAt),
+        })),
+        company: {
+          ...item.company,
+          lastUpdated: new Date(item.company.lastUpdated),
+        },
+      }));
+    }
+  } catch (e) {
+    console.error("Failed to parse watchlist:", e);
+  }
+  return [];
+}
+
+function persistWatchlist(watchlist: WatchlistCompany[]) {
+  localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify(watchlist));
+}
+
 // Initialize with some mock data
-const initializeWatchlist = (): WatchlistCompany[] => {
-  const initialCompanies = companies.slice(0, 7);
-  return initialCompanies.map(company => ({
+function initializeWatchlist(): WatchlistCompany[] {
+  const stored = getStoredWatchlist();
+  if (stored.length > 0) return stored;
+  
+  const initialCompanies = companies.slice(0, 3);
+  const initial = initialCompanies.map(company => ({
     company,
     addedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
     signals: generateMockSignals(company.id),
     whyItMatters: generateWhyItMatters(company),
   }));
-};
+  
+  persistWatchlist(initial);
+  return initial;
+}
 
 export function WatchlistProvider({ children }: { children: ReactNode }) {
-  const [watchlist, setWatchlist] = useState<WatchlistCompany[]>(initializeWatchlist);
+  const [watchlist, setWatchlist] = useState<WatchlistCompany[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const addToWatchlist = useCallback((companyId: string): boolean => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setWatchlist(initializeWatchlist());
+      setIsLoading(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Persist whenever watchlist changes
+  useEffect(() => {
+    if (!isLoading) {
+      persistWatchlist(watchlist);
+    }
+  }, [watchlist, isLoading]);
+
+  const addToWatchlist = useCallback(async (companyId: string): Promise<boolean> => {
     if (watchlist.length >= MAX_WATCHLIST_SIZE) {
-      toast({
-        title: "Watchlist limit reached (10)",
+      toast.error("Watchlist limit reached", {
         description: "Remove a company to add another.",
-        variant: "destructive",
-        action: (
-          <a href="/watchlist" className="underline text-sm font-medium">
-            Manage watchlist
-          </a>
-        ),
+        action: {
+          label: "Manage",
+          onClick: () => (window.location.href = "/watchlist"),
+        },
       });
       return false;
     }
 
     if (watchlist.some(w => w.company.id === companyId)) {
-      toast({
-        title: "Already in watchlist",
-        description: "This company is already being watched.",
+      toast.info("Already watching", {
+        description: "This company is already in your watchlist.",
       });
       return false;
     }
@@ -108,35 +160,48 @@ export function WatchlistProvider({ children }: { children: ReactNode }) {
     const company = companies.find(c => c.id === companyId);
     if (!company) return false;
 
-    setWatchlist(prev => [
-      ...prev,
-      {
-        company,
-        addedAt: new Date(),
-        signals: generateMockSignals(companyId),
-        whyItMatters: generateWhyItMatters(company),
-      },
-    ]);
+    // Optimistic update
+    const newItem: WatchlistCompany = {
+      company,
+      addedAt: new Date(),
+      signals: generateMockSignals(companyId),
+      whyItMatters: generateWhyItMatters(company),
+    };
 
-    toast({
-      title: "Added to watchlist",
-      description: `${company.name} is now being monitored for signals.`,
+    setWatchlist(prev => [newItem, ...prev]);
+
+    toast.success("Added to watchlist", {
+      description: `${company.name} is now being monitored.`,
     });
+
+    // Simulate API call
+    await delay();
+
     return true;
   }, [watchlist]);
 
-  const removeFromWatchlist = useCallback((companyId: string) => {
-    setWatchlist(prev => {
-      const company = prev.find(w => w.company.id === companyId);
-      if (company) {
-        toast({
-          title: "Removed from watchlist",
-          description: `${company.company.name} has been removed.`,
-        });
-      }
-      return prev.filter(w => w.company.id !== companyId);
-    });
-  }, []);
+  const removeFromWatchlist = useCallback(async (companyId: string): Promise<void> => {
+    const item = watchlist.find(w => w.company.id === companyId);
+    
+    // Optimistic update
+    setWatchlist(prev => prev.filter(w => w.company.id !== companyId));
+
+    if (item) {
+      toast.success("Removed from watchlist", {
+        description: item.company.name,
+        action: {
+          label: "Undo",
+          onClick: () => {
+            setWatchlist(prev => [item, ...prev]);
+            toast.success("Restored", { description: item.company.name });
+          },
+        },
+      });
+    }
+
+    // Simulate API call
+    await delay();
+  }, [watchlist]);
 
   const isInWatchlist = useCallback((companyId: string): boolean => {
     return watchlist.some(w => w.company.id === companyId);
@@ -152,6 +217,7 @@ export function WatchlistProvider({ children }: { children: ReactNode }) {
         removeFromWatchlist,
         isInWatchlist,
         canAdd: watchlist.length < MAX_WATCHLIST_SIZE,
+        isLoading,
       }}
     >
       {children}
