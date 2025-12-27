@@ -10,6 +10,8 @@ import {
   Filter,
   Sparkles,
   Check,
+  List,
+  Network,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -47,10 +49,12 @@ import {
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 import type { Contact, Company } from "@/types";
 import { cn } from "@/lib/utils";
+import { TeamTree } from "./TeamTree";
 
 // Mock PoC scoring data
 interface PoCScore {
@@ -155,6 +159,7 @@ interface PeopleTabProps {
 }
 
 export function PeopleTab({ contacts, company }: PeopleTabProps) {
+  const [activeView, setActiveView] = useState<"list" | "tree">("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState<string>("all");
   const [seniorityFilter, setSeniorityFilter] = useState<string>("all");
@@ -250,87 +255,109 @@ export function PeopleTab({ contacts, company }: PeopleTabProps) {
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        {/* Search and Filters */}
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name, title, or department..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                  <SelectTrigger className="w-[160px]">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Departments</SelectItem>
-                    {departments.map((dept) => (
-                      <SelectItem key={dept} value={dept}>
-                        {dept}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={seniorityFilter} onValueChange={setSeniorityFilter}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Seniority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Levels</SelectItem>
-                    {seniorities.map((sen) => (
-                      <SelectItem key={sen} value={sen} className="capitalize">
-                        {sen === "c-level" ? "C-Level" : sen.charAt(0).toUpperCase() + sen.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* View Toggle Tabs */}
+        <Tabs value={activeView} onValueChange={(v) => setActiveView(v as "list" | "tree")}>
+          <TabsList>
+            <TabsTrigger value="list" className="gap-2">
+              <List className="h-4 w-4" />
+              List View
+            </TabsTrigger>
+            <TabsTrigger value="tree" className="gap-2">
+              <Network className="h-4 w-4" />
+              Team Tree
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Results Header */}
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Showing {filteredEmployees.length} of {employeesWithScores.length} people
-            <span className="text-foreground font-medium ml-1">
-              • Sorted by Ideal PoC Score
-            </span>
-          </p>
-        </div>
+          {/* List View */}
+          <TabsContent value="list" className="space-y-6 mt-6">
+            {/* Search and Filters */}
+            <Card>
+              <CardContent className="py-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by name, title, or department..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                      <SelectTrigger className="w-[160px]">
+                        <Filter className="h-4 w-4 mr-2" />
+                        <SelectValue placeholder="Department" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Departments</SelectItem>
+                        {departments.map((dept) => (
+                          <SelectItem key={dept} value={dept}>
+                            {dept}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={seniorityFilter} onValueChange={setSeniorityFilter}>
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Seniority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Levels</SelectItem>
+                        {seniorities.map((sen) => (
+                          <SelectItem key={sen} value={sen} className="capitalize">
+                            {sen === "c-level" ? "C-Level" : sen.charAt(0).toUpperCase() + sen.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Employee List */}
-        <Card>
-          <CardHeader className="pb-0">
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-accent" />
-              People at {company.name}
-            </CardTitle>
-            <CardDescription>
-              Employees ranked by Ideal Point of Contact score
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-0 mt-4">
-            <div className="divide-y divide-border/50">
-              {filteredEmployees.map((employee) => (
-                <EmployeeRow
-                  key={employee.id}
-                  employee={employee}
-                  onAddToList={() => setAddToListDialog(employee)}
-                  getScoreColor={getScoreColor}
-                  getScoreBgColor={getScoreBgColor}
-                />
-              ))}
+            {/* Results Header */}
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Showing {filteredEmployees.length} of {employeesWithScores.length} people
+                <span className="text-foreground font-medium ml-1">
+                  • Sorted by Ideal PoC Score
+                </span>
+              </p>
             </div>
-          </CardContent>
-        </Card>
+
+            {/* Employee List */}
+            <Card>
+              <CardHeader className="pb-0">
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-accent" />
+                  People at {company.name}
+                </CardTitle>
+                <CardDescription>
+                  Employees ranked by Ideal Point of Contact score
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 mt-4">
+                <div className="divide-y divide-border/50">
+                  {filteredEmployees.map((employee) => (
+                    <EmployeeRow
+                      key={employee.id}
+                      employee={employee}
+                      onAddToList={() => setAddToListDialog(employee)}
+                      getScoreColor={getScoreColor}
+                      getScoreBgColor={getScoreBgColor}
+                    />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Team Tree View */}
+          <TabsContent value="tree" className="mt-6">
+            <TeamTree contacts={contacts} company={company} />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Add to List Dialog */}
