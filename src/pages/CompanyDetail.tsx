@@ -53,7 +53,7 @@ import { toast } from "sonner";
 import { getCompany, getContacts, getSignals } from "@/mock/api";
 import type { Company, Contact, Signal } from "@/types";
 import { cn } from "@/lib/utils";
-import { PeopleTab } from "@/components/company";
+import { PeopleTab, EnterpriseContactsTab } from "@/components/company";
 
 // Mock watchlist count
 const WATCHLIST_COUNT = 8;
@@ -493,7 +493,7 @@ export default function CompanyDetail() {
 
           {/* Contacts Tab (Enterprise) */}
           <TabsContent value="contacts">
-            <ContactsTab contacts={contacts} />
+            <EnterpriseContactsTab contacts={contacts} company={company} />
           </TabsContent>
 
           {/* Signals Tab */}
