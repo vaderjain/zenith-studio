@@ -3,7 +3,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
 import { WatchlistProvider } from "@/hooks/useWatchlist";
+import { ProspectsProvider } from "@/hooks/useProspects";
+import { ListsProvider } from "@/hooks/useLists";
 import { CommandPalette } from "@/components/CommandPalette";
 
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -50,19 +53,25 @@ function AppPages() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider delayDuration={200}>
-      <WatchlistProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <CommandPalette />
-          <Routes>
-            <Route path="/landing" element={<Index />} />
-            <Route path="/ui-kit" element={<UIKit />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/*" element={<AppPages />} />
-          </Routes>
-        </BrowserRouter>
-      </WatchlistProvider>
+      <AuthProvider>
+        <WatchlistProvider>
+          <ProspectsProvider>
+            <ListsProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <CommandPalette />
+                <Routes>
+                  <Route path="/landing" element={<Index />} />
+                  <Route path="/ui-kit" element={<UIKit />} />
+                  <Route path="/onboarding" element={<Onboarding />} />
+                  <Route path="/*" element={<AppPages />} />
+                </Routes>
+              </BrowserRouter>
+            </ListsProvider>
+          </ProspectsProvider>
+        </WatchlistProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
