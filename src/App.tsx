@@ -28,7 +28,6 @@ function AppPages() {
     <AppLayout>
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/find" element={<FindProspects />} />
         <Route path="/company/:id" element={<CompanyDetail />} />
         <Route path="/prospects" element={<MyProspects />} />
@@ -54,6 +53,7 @@ const App = () => (
         <Routes>
           <Route path="/landing" element={<Index />} />
           <Route path="/ui-kit" element={<UIKit />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/*" element={<AppPages />} />
         </Routes>
       </BrowserRouter>
