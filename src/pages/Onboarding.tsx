@@ -10,18 +10,14 @@ import {
   CheckCircle2,
   Sparkles,
   Globe,
-  Tag,
-  Users,
-  DollarSign,
   Zap,
-  MapPin,
-  Edit3,
   Play,
   Check,
-  Loader2,
 } from "lucide-react";
 
 import { PageContainer } from "@/components/layout";
+import { ICPSummary } from "@/components/icp";
+import { getICPData } from "@/mock/icp";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -907,7 +903,7 @@ function ICPResultScreen({
   data: OnboardingData;
   onRunSearch: () => void;
 }) {
-  const [isEditing, setIsEditing] = useState(false);
+  const icpData = getICPData();
 
   return (
     <div className="min-h-screen bg-background">
@@ -926,161 +922,13 @@ function ICPResultScreen({
           </p>
         </div>
 
-        {/* ICP Summary Card */}
-        <Card className="mb-8 overflow-hidden">
-          <div className="bg-gradient-to-br from-accent/10 via-background to-info/10 p-6 border-b border-border/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <Badge variant="accent" className="mb-2">
-                  Generated ICP
-                </Badge>
-                <h2 className="text-xl font-semibold">
-                  {data.productName} — Ideal Customer Profile
-                </h2>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(!isEditing)}
-                className="gap-2"
-              >
-                <Edit3 className="h-4 w-4" />
-                {isEditing ? "Done" : "Edit"}
-              </Button>
-            </div>
-          </div>
-
-          <CardContent className="p-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Firmographics */}
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-accent" />
-                  Firmographics
-                </h3>
-                <div className="space-y-3">
-                  <ICPField
-                    label="Company Size"
-                    value={
-                      data.segment === "startups"
-                        ? "10 - 500 employees"
-                        : data.segment === "enterprise"
-                        ? "500+ employees"
-                        : "10 - 5,000 employees"
-                    }
-                    isEditing={isEditing}
-                  />
-                  <ICPField
-                    label="Industries"
-                    value="SaaS, Technology, FinTech"
-                    isEditing={isEditing}
-                  />
-                  <ICPField
-                    label="Region"
-                    value={data.region || "North America, Europe"}
-                    isEditing={isEditing}
-                  />
-                  <ICPField
-                    label="Revenue"
-                    value="$1M - $100M ARR"
-                    isEditing={isEditing}
-                  />
-                </div>
-              </div>
-
-              {/* Technographics */}
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-accent" />
-                  Technographics
-                </h3>
-                <div className="space-y-3">
-                  <ICPField
-                    label="Must Have"
-                    value="AWS, React, Node.js"
-                    isEditing={isEditing}
-                  />
-                  <ICPField
-                    label="Nice to Have"
-                    value="Kubernetes, Terraform"
-                    isEditing={isEditing}
-                  />
-                  <ICPField
-                    label="Exclude"
-                    value="Legacy on-premise systems"
-                    isEditing={isEditing}
-                  />
-                </div>
-              </div>
-
-              {/* Buyer Persona */}
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Users className="h-4 w-4 text-accent" />
-                  Buyer Persona
-                </h3>
-                <div className="space-y-3">
-                  <ICPField
-                    label="Primary"
-                    value={data.targetBuyer || "VP Engineering, CTO"}
-                    isEditing={isEditing}
-                  />
-                  <ICPField
-                    label="Secondary"
-                    value="Director of DevOps"
-                    isEditing={isEditing}
-                  />
-                  <ICPField
-                    label="Pain Points"
-                    value="Developer productivity, scaling challenges"
-                    isEditing={isEditing}
-                  />
-                </div>
-              </div>
-
-              {/* Buying Signals */}
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-accent" />
-                  Buying Signals
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    "Recent funding",
-                    "Hiring engineers",
-                    "Tech stack change",
-                    "New CTO",
-                    "Expansion plans",
-                  ].map((signal) => (
-                    <Badge key={signal} variant="secondary">
-                      {signal}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* ICP Score */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold mb-1">ICP Confidence Score</h3>
-                <p className="text-sm text-muted-foreground">
-                  Based on the quality and specificity of your inputs
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <div className="text-3xl font-bold text-accent">87%</div>
-                  <div className="text-xs text-muted-foreground">High confidence</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* ICP Summary Component */}
+        <ICPSummary
+          data={icpData}
+          productName={data.productName || "Your Product"}
+          showActions={false}
+          className="mb-8"
+        />
 
         {/* CTA */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -1094,53 +942,5 @@ function ICPResultScreen({
         </div>
       </div>
     </div>
-  );
-}
-
-function ICPField({
-  label,
-  value,
-  isEditing,
-}: {
-  label: string;
-  value: string;
-  isEditing: boolean;
-}) {
-  const [editValue, setEditValue] = useState(value);
-
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      {isEditing ? (
-        <Input
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
-          className="h-8 text-sm max-w-[200px]"
-        />
-      ) : (
-        <span className="text-sm font-medium text-right">{value}</span>
-      )}
-    </div>
-  );
-}
-
-// Missing import
-function TrendingUp(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-      <polyline points="16 7 22 7 22 13" />
-    </svg>
   );
 }

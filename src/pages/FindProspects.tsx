@@ -11,6 +11,8 @@ import {
   SlidersHorizontal,
   Sparkles,
   X,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 import {
@@ -19,6 +21,7 @@ import {
   AutoBreadcrumbs,
 } from "@/components/layout";
 import { PageSkeleton } from "@/components/layout/PageSkeleton";
+import { ICPSummary } from "@/components/icp";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -36,15 +39,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 import { getCompanies } from "@/mock/api";
 import { getCurrentUser } from "@/mock/user";
+import { getICPData } from "@/mock/icp";
 import type { Company } from "@/types";
 
 export default function FindProspects() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [icpExpanded, setIcpExpanded] = useState(false);
   
   // Read initial values from URL params
   const initialQuery = searchParams.get("q") || "";
@@ -52,6 +62,7 @@ export default function FindProspects() {
   
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const user = getCurrentUser();
+  const icpData = getICPData();
 
   useEffect(() => {
     const loadData = async () => {
@@ -178,6 +189,43 @@ export default function FindProspects() {
             Clear all
           </Button>
         </div>
+      )}
+
+      {/* ICP Summary - Collapsible */}
+      {initialRelevant && (
+        <Collapsible open={icpExpanded} onOpenChange={setIcpExpanded} className="mb-6">
+          <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-accent/5">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-accent" />
+              </div>
+              <div>
+                <span className="font-medium text-sm">ICP Active</span>
+                <p className="text-xs text-muted-foreground">
+                  Results ranked by your Ideal Customer Profile
+                </p>
+              </div>
+            </div>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-2">
+                {icpExpanded ? (
+                  <>
+                    Hide ICP
+                    <ChevronUp className="h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    View ICP
+                    <ChevronDown className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+          <CollapsibleContent className="pt-4">
+            <ICPSummary data={icpData} compact showActions />
+          </CollapsibleContent>
+        </Collapsible>
       )}
 
       {/* Search & Filters */}
