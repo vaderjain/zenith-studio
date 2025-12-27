@@ -20,6 +20,7 @@ import {
   ChevronRight,
   Bell,
 } from "lucide-react";
+import { useWatchlist } from "@/hooks/useWatchlist";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -265,6 +266,9 @@ function TopBar() {
 
       {/* Right side */}
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Watchlist Counter */}
+        <WatchlistCounter />
+
         {/* Credit Balance */}
         <Badge
           variant="outline"
@@ -329,5 +333,21 @@ function TopBar() {
         </DropdownMenu>
       </div>
     </header>
+  );
+}
+
+function WatchlistCounter() {
+  const navigate = useNavigate();
+  const { count, maxSize } = useWatchlist();
+  
+  return (
+    <Badge
+      variant="outline"
+      className="hidden sm:flex gap-1.5 px-3 py-1.5 font-medium cursor-pointer hover:bg-muted/50 transition-colors"
+      onClick={() => navigate("/watchlist")}
+    >
+      <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+      <span>Watchlist {count}/{maxSize}</span>
+    </Badge>
   );
 }
