@@ -53,6 +53,7 @@ import { toast } from "sonner";
 import { getCompany, getContacts, getSignals } from "@/mock/api";
 import type { Company, Contact, Signal } from "@/types";
 import { cn } from "@/lib/utils";
+import { PeopleTab } from "@/components/company";
 
 // Mock watchlist count
 const WATCHLIST_COUNT = 8;
@@ -332,9 +333,9 @@ export default function CompanyDetail() {
               Overview
             </TabsTrigger>
             {!isEnterprise && (
-              <TabsTrigger value="team" className="gap-2">
+              <TabsTrigger value="people" className="gap-2">
                 <Users className="h-4 w-4" />
-                Team
+                People ({contacts.length})
               </TabsTrigger>
             )}
             {isEnterprise && (
@@ -485,9 +486,9 @@ export default function CompanyDetail() {
             </div>
           </TabsContent>
 
-          {/* Team Tab (Startup) */}
-          <TabsContent value="team">
-            <TeamTab contacts={contacts} company={company} />
+          {/* People Tab (Startup) */}
+          <TabsContent value="people">
+            <PeopleTab contacts={contacts} company={company} />
           </TabsContent>
 
           {/* Contacts Tab (Enterprise) */}
