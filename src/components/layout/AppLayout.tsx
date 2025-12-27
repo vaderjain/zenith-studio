@@ -271,13 +271,26 @@ function TopBar() {
 
       {/* Right side */}
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Command Palette Hint */}
+        <button
+          onClick={() => {
+            const event = new KeyboardEvent('keydown', { key: 'k', metaKey: true });
+            document.dispatchEvent(event);
+          }}
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/50 bg-muted/50 hover:bg-muted transition-colors text-sm text-muted-foreground"
+        >
+          <span>Search...</span>
+          <kbd className="px-1.5 py-0.5 bg-background rounded text-[10px] font-medium border">⌘K</kbd>
+        </button>
+
         {/* Watchlist Counter */}
         <WatchlistCounter />
 
         {/* Credit Balance */}
         <Badge
           variant="outline"
-          className="hidden sm:flex gap-1.5 px-3 py-1.5 font-medium"
+          className="hidden sm:flex gap-1.5 px-3 py-1.5 font-medium cursor-pointer hover:bg-muted/50 transition-colors"
+          onClick={() => navigate("/billing")}
         >
           <Zap className="h-3.5 w-3.5 text-accent" />
           <span>342 credits</span>
