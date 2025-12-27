@@ -12,6 +12,7 @@ import FindProspects from "./pages/FindProspects";
 import CompanyDetail from "./pages/CompanyDetail";
 import MyProspects from "./pages/MyProspects";
 import Lists from "./pages/Lists";
+import ListDetail from "./pages/ListDetail";
 import WatchlistPage from "./pages/Watchlist";
 import Signals from "./pages/Signals";
 import Workspace from "./pages/Workspace";
@@ -32,7 +33,7 @@ function AppPages() {
         <Route path="/company/:id" element={<CompanyDetail />} />
         <Route path="/prospects" element={<MyProspects />} />
         <Route path="/lists" element={<Lists />} />
-        <Route path="/lists/:id" element={<Lists />} />
+        <Route path="/lists/:id" element={<ListDetail />} />
         <Route path="/watchlist" element={<WatchlistPage />} />
         <Route path="/signals" element={<Signals />} />
         <Route path="/workspace" element={<Workspace />} />
