@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WatchlistProvider } from "@/hooks/useWatchlist";
+import { CommandPalette } from "@/components/CommandPalette";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
@@ -48,11 +49,12 @@ function AppPages() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+    <TooltipProvider delayDuration={200}>
       <WatchlistProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <CommandPalette />
           <Routes>
             <Route path="/landing" element={<Index />} />
             <Route path="/ui-kit" element={<UIKit />} />

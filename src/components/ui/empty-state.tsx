@@ -21,11 +21,12 @@ export function EmptyState({
       className={cn(
         "flex flex-col items-center justify-center text-center py-16 px-8",
         "rounded-2xl border-2 border-dashed border-border/50 bg-muted/20",
+        "animate-fade-in",
         className
       )}
     >
       {Icon && (
-        <div className="mb-4 rounded-2xl bg-muted p-4">
+        <div className="mb-4 rounded-2xl bg-muted p-4 animate-float">
           <Icon className="h-8 w-8 text-muted-foreground" />
         </div>
       )}
@@ -35,7 +36,7 @@ export function EmptyState({
           {description}
         </p>
       )}
-      {action}
+      {action && <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>{action}</div>}
     </div>
   );
 }
