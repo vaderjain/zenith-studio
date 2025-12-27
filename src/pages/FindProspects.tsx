@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Search,
-  Filter,
   Building2,
   MapPin,
   Users,
@@ -10,6 +9,8 @@ import {
   Bookmark,
   MoreHorizontal,
   SlidersHorizontal,
+  Sparkles,
+  X,
 } from "lucide-react";
 
 import {
@@ -37,12 +38,20 @@ import {
 } from "@/components/ui/select";
 
 import { getCompanies } from "@/mock/api";
+import { getCurrentUser } from "@/mock/user";
 import type { Company } from "@/types";
 
 export default function FindProspects() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Read initial values from URL params
+  const initialQuery = searchParams.get("q") || "";
+  const initialRelevant = searchParams.get("relevant") === "true";
+  
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const user = getCurrentUser();
 
   useEffect(() => {
     const loadData = async () => {
@@ -52,6 +61,40 @@ export default function FindProspects() {
     };
     loadData();
   }, []);
+
+  // Get active filters from URL
+  const activeFilters: string[] = [];
+  if (searchParams.get("segment") && searchParams.get("segment") !== "all") {
+    activeFilters.push(searchParams.get("segment")!);
+  }
+  if (searchParams.get("geo") && searchParams.get("geo") !== "all") {
+    activeFilters.push(searchParams.get("geo")!);
+  }
+  if (searchParams.get("industry") && searchParams.get("industry") !== "all") {
+    activeFilters.push(searchParams.get("industry")!);
+  }
+  if (searchParams.get("size") && searchParams.get("size") !== "all") {
+    activeFilters.push(searchParams.get("size")!);
+  }
+  if (searchParams.get("funding") && searchParams.get("funding") !== "all") {
+    activeFilters.push(searchParams.get("funding")!);
+  }
+
+  const clearFilter = (filter: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    // Find which param matches this filter and remove it
+    for (const [key, value] of newParams.entries()) {
+      if (value === filter) {
+        newParams.delete(key);
+      }
+    }
+    setSearchParams(newParams);
+  };
+
+  const clearAllFilters = () => {
+    setSearchParams({});
+    setSearchQuery("");
+  };
 
   if (isLoading) {
     return <PageSkeleton title cards={0} table />;
@@ -63,7 +106,11 @@ export default function FindProspects() {
 
       <PageHeader
         title="Find Prospects"
-        description="Search and discover companies matching your ICP"
+        description={
+          initialQuery
+            ? `Results for "${initialQuery}"`
+            : "Search and discover companies matching your ICP"
+        }
         action={
           <Button variant="outline" className="gap-2">
             <SlidersHorizontal className="h-4 w-4" />
@@ -71,6 +118,67 @@ export default function FindProspects() {
           </Button>
         }
       />
+
+      {/* AI Search Banner */}
+      {initialQuery && (
+        <div className="mb-6 p-4 rounded-2xl bg-accent/5 border border-accent/20">
+          <div className="flex items-start gap-3">
+            <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
+              <Sparkles className="h-5 w-5 text-accent" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-medium">AI Search</span>
+                {initialRelevant && (
+                  <Badge variant="accent" className="text-xs">
+                    Relevant to {user.companyName}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Showing companies matching: <strong>"{initialQuery}"</strong>
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={clearAllFilters}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Active Filters */}
+      {activeFilters.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+          <span className="text-sm text-muted-foreground">Active filters:</span>
+          {activeFilters.map((filter) => (
+            <Badge
+              key={filter}
+              variant="secondary"
+              className="gap-1 pl-3 pr-1 py-1"
+            >
+              {filter}
+              <button
+                onClick={() => clearFilter(filter)}
+                className="ml-1 hover:bg-foreground/10 rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearAllFilters}
+            className="text-muted-foreground"
+          >
+            Clear all
+          </Button>
+        </div>
+      )}
 
       {/* Search & Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -112,6 +220,11 @@ export default function FindProspects() {
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-muted-foreground">
           Showing <strong>{companies.length}</strong> companies
+          {initialRelevant && (
+            <span className="ml-1">
+              ranked by relevance to {user.companyName}
+            </span>
+          )}
         </p>
         <Select defaultValue="score">
           <SelectTrigger className="w-32">
